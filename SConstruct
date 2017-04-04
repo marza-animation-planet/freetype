@@ -49,7 +49,7 @@ def FreetypeName():
     else:
         basename = "libtiff.a"
 
-   return out_dir + "/" + basename
+    return out_dir + "/" + basename
 
 
 Export("RequireFreetype FreetypeName")
