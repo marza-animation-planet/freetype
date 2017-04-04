@@ -1,0 +1,6 @@
+.build/
+.sconsign.dblite
+*.cmake.outputs
+*.cmake.inputs
+release/
+debug/
