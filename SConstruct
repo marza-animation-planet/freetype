@@ -45,11 +45,11 @@ def RequireFreetype(env):
 
 def FreetypeName():
     if sys.platform == "win32":
-        basename = "tiff.lib"
+        basename = "freetype.lib"
     else:
-        basename = "libtiff.a"
+        basename = "libfreetype.a"
 
-    return out_dir + "/" + basename
+    return out_libdir + "/" + basename
 
 
 Export("RequireFreetype FreetypeName")
