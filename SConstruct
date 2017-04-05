@@ -11,16 +11,12 @@ out_incdir = excons.OutputBaseDirectory() + "/include"
 out_libdir = excons.OutputBaseDirectory() + "/lib"
 
 
-
-
-
 prjs = []
 
 
 prjs.append({"name": "freetype",
              "type": "cmake",
-             "cmake-opts": {"BUILD_SHARED_LIBS": (0 if staticlib else 1),
-                            "CMAKE_INSTALL_LIBDIR": "lib"},
+             "cmake-opts": {"BUILD_SHARED_LIBS": (0 if staticlib else 1)},
              "cmake-srcs": excons.CollectFiles("freetype", patterns=["*.c"], recursive=True)})
 
 excons.AddHelpOptions(libtiff="""FREETYPE OPTIONS
