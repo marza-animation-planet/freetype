@@ -3,3 +3,5 @@
 *.cmake.*
 release/
 debug/
+excons.cache
+
