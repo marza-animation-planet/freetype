@@ -18,6 +18,7 @@ cmake_opts = {"BUILD_SHARED_LIBS" : (0 if staticlib else 1), # not supported on 
               "WITH_HARFBUZZ": 0}
 
 cfg_deps = []
+zlib_from_source = False
 libpng_overrides = {}
 
 # ZLIB Setup ===================================================================
@@ -48,6 +49,8 @@ if rv is None:
     libpng_overrides["with-zlib"] = os.path.dirname(os.path.dirname(zlibpath))
     libpng_overrides["zlib-static"] = zlibstatic
     libpng_overrides["zlib-name"] = ZlibName(static=zlibstatic)
+
+    zlib_from_source = True
 
 else:
     ZlibRequire = rv
@@ -88,6 +91,9 @@ def PngLibname(static):
 rv = excons.cmake.ExternalLibRequire(cmake_opts, name="libpng", libnameFunc=PngLibname, varPrefix="PNG_")
 if rv is None:
     excons.PrintOnce("freetype: Build libpng from sources ...")
+    if zlib_from_source:
+        excons.cmake.AddConfigureDependencies("libpng", [excons.cmake.OutputsCachePath("zlib")])
+
     excons.Call("libpng", overrides=libpng_overrides, imp=["RequireLibpng", "LibpngName", "LibpngPath"])
 
     cfg_deps.append(excons.cmake.OutputsCachePath("libpng"))
