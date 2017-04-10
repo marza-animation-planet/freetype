@@ -63,22 +63,22 @@ def Bzip2Libname(static):
 def Bzip2Defines(static):
     return ([] if static else ["BZ_DLL"])
 
-rv = excons.cmake.ExternalLibRequire(cmake_opts, name="bzip2", libnameFunc=Bzip2Libname, definesFunc=Bzip2Defines)
+rv = excons.cmake.ExternalLibRequire(cmake_opts, name="bz2", libnameFunc=Bzip2Libname, definesFunc=Bzip2Defines, varPrefix="BZIP2_")
 if rv is None:
     excons.PrintOnce("freetype: Build bzip2 from sources ...")
-    excons.Call("bzip2", imp=["RequireBzip2", "Bzip2Name", "Bzip2Path"])
+    excons.Call("bzip2", imp=["RequireBZ2", "BZ2Name", "BZ2Path"])
 
-    libpath = Bzip2Path()
+    libpath = BZ2Path()
     cfg_deps.append(libpath)
 
-    bz2static = (excons.GetArgument("bzip2-static", 1, int) != 0)
+    bz2static = (excons.GetArgument("bz2-static", 1, int) != 0)
 
     cmake_opts["BZIP2_LIBRARY_RELEASE"] = libpath
     cmake_opts["BZIP2_LIBRARY_DEBUG"] = libpath
     cmake_opts["BZIP2_INCLUDE_DIR"] = out_incdir
 
     def Bzip2Require(env):
-        RequireBzip2(env)
+        RequireBZ2(env)
 
 else:
     Bzip2Require = rv
@@ -155,3 +155,4 @@ def RequireFreetype(env):
 
 Export("FreetypeName FreetypePath RequireFreetype")
 
+Default(["freetype"])
