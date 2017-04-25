@@ -113,28 +113,11 @@ else:
 
 # Freetype library ===================================================================
 
-prjs = [
-    {   "name": "freetype",
-        "type": "cmake",
-        "cmake-opts": cmake_opts,
-        "cmake-cfgs": ["./CMakeLists.txt"] + cfg_deps,
-        "cmake-srcs": excons.CollectFiles(".", patterns=["*.c"], recursive=True)
-    }
-]
-
-excons.AddHelpOptions(libtiff="""FREETYPE OPTIONS
-  freetype-static=0|1 : Toggle between static and shared library build. [1]
-  zlib-static=0|1     : When building zlib from sources, link static version of the library to freetype. [1]
-  bzip2-static=0|1    : When building bzip2 from sources, link static version of the library to freetype. [1]
-  libpng-static=0|1   : When building libpng from sources, link static version of the library to freetype. [1]""")
-excons.AddHelpOptions(ext_zlib=excons.ExternalLibHelp("zlib"))
-excons.AddHelpOptions(ext_bzip2=excons.ExternalLibHelp("bzip2"))
-excons.AddHelpOptions(ext_libpng=excons.ExternalLibHelp("libpng"))
-excons.DeclareTargets(env, prjs)
-
-
 def FreetypeName():
-    return "freetype"
+    if sys.platform == "win32" and staticlib:
+        return "libfreetype"
+    else:
+        return "freetype"
 
 def FreetypePath():
     name = FreetypeName()
@@ -151,8 +134,24 @@ def RequireFreetype(env):
         PngRequire(env)
         ZlibRequire(env)
         Bzip2Require(env)
-    excons.Link(env, FreetypeName(), static=staticlib, force=True, silent=True)
+    excons.Link(env, FreetypePath(), static=staticlib, force=True, silent=True)
+
+prjs = [
+    {   "name": FreetypeName(),
+        "type": "cmake",
+        "cmake-opts": cmake_opts,
+        "cmake-cfgs": ["./CMakeLists.txt"] + cfg_deps,
+        "cmake-srcs": excons.CollectFiles(".", patterns=["*.c"], recursive=True),
+        "cmake-outputs": map(lambda x: "include/freetype/%s" % os.path.basename(x), excons.glob("include/freetype/*.h")) +
+                         [FreetypePath()]
+    }
+]
+
+excons.AddHelpOptions(freetype="""FREETYPE OPTIONS
+  freetype-static=0|1 : Toggle between static and shared library build. [1]
+  zlib-static=0|1     : When building zlib from sources, link static version of the library to freetype. [1]
+  bz2-static=0|1      : When building bzip2 from sources, link static version of the library to freetype. [1]
+  libpng-static=0|1   : When building libpng from sources, link static version of the library to freetype. [1]""")
+excons.DeclareTargets(env, prjs)
 
 Export("FreetypeName FreetypePath RequireFreetype")
-
-Default(["freetype"])
