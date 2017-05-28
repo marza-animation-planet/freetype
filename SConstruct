@@ -34,10 +34,10 @@ if rv is None:
     excons.PrintOnce("freetype: Build zlib from sources ...")
     excons.Call("zlib", imp=["RequireZlib", "ZlibName", "ZlibPath"])
 
-    cfg_deps.append(excons.cmake.OutputsCachePath("zlib"))
-
     zlibstatic = excons.GetArgument("zlib-static", 1, int)
     zlibpath = ZlibPath(static=zlibstatic)
+
+    cfg_deps.append(zlibpath)
 
     cmake_opts["ZLIB_LIBRARY"] = zlibpath
     cmake_opts["ZLIB_INCLUDE_DIR"] = out_incdir
@@ -96,10 +96,10 @@ if rv is None:
 
     excons.Call("libpng", overrides=libpng_overrides, imp=["RequireLibpng", "LibpngName", "LibpngPath"])
 
-    cfg_deps.append(excons.cmake.OutputsCachePath("libpng"))
-
     pngstatic = (excons.GetArgument("libpng-static", 1, int) != 0)
     libpath = LibpngPath(static=pngstatic)
+
+    cfg_deps.append(libpath)
 
     cmake_opts["PNG_LIBRARY"] = libpath
     cmake_opts["PNG_INCLUDE_DIR"] = out_incdir
@@ -142,7 +142,7 @@ prjs = [
         "cmake-opts": cmake_opts,
         "cmake-cfgs": ["./CMakeLists.txt"] + cfg_deps,
         "cmake-srcs": excons.CollectFiles(".", patterns=["*.c"], recursive=True),
-        "cmake-outputs": map(lambda x: "include/freetype/%s" % os.path.basename(x), excons.glob("include/freetype/*.h")) +
+        "cmake-outputs": map(lambda x: "include/freetype2/freetype/%s" % os.path.basename(x), excons.glob("include/freetype/*.h")) +
                          [FreetypePath()]
     }
 ]
