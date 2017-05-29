@@ -30,7 +30,7 @@ def ZlibDefines(static):
     return ([] if static else ["ZLIB_DLL"])
 
 rv = excons.cmake.ExternalLibRequire(cmake_opts, name="zlib", libnameFunc=ZlibLibname, definesFunc=ZlibDefines)
-if rv is None:
+if rv["require"] is None:
     excons.PrintOnce("freetype: Build zlib from sources ...")
     excons.Call("zlib", imp=["RequireZlib", "ZlibName", "ZlibPath"])
 
@@ -51,7 +51,7 @@ if rv is None:
     libpng_overrides["zlib-static"] = zlibstatic
     libpng_overrides["zlib-name"] = ZlibName(static=zlibstatic)
 else:
-    ZlibRequire = rv
+    ZlibRequire = rv["require"]
 
 # BZIP2 Setup ===================================================================
 
@@ -62,7 +62,7 @@ def Bzip2Defines(static):
     return ([] if static else ["BZ_DLL"])
 
 rv = excons.cmake.ExternalLibRequire(cmake_opts, name="bz2", libnameFunc=Bzip2Libname, definesFunc=Bzip2Defines, varPrefix="BZIP2_")
-if rv is None:
+if rv["require"] is None:
     excons.PrintOnce("freetype: Build bzip2 from sources ...")
     excons.Call("bzip2", imp=["RequireBZ2", "BZ2Name", "BZ2Path"])
 
@@ -79,15 +79,19 @@ if rv is None:
         RequireBZ2(env)
 
 else:
-    Bzip2Require = rv
+    Bzip2Require = rv["require"]
 
 # LIBPNG Setup ===================================================================
 
 def PngLibname(static):
     return ("png" if sys.platform != "win32" else "libpng")
 
-rv = excons.cmake.ExternalLibRequire(cmake_opts, name="libpng", libnameFunc=PngLibname, varPrefix="PNG_")
-if rv is None:
+def PngDefines(static):
+    if not static and sys.platform == "win32":
+        env.Append(CPPDEFINES=["PNG_USE_DLL"])
+
+rv = excons.cmake.ExternalLibRequire(cmake_opts, name="libpng", libnameFunc=PngLibname, definesFunc=PngDefines, varPrefix="PNG_")
+if rv["require"] is None:
     excons.PrintOnce("freetype: Build libpng from sources ...")
     excons.cmake.AddConfigureDependencies("libpng", libpng_deps)
     excons.Call("libpng", overrides=libpng_overrides, imp=["RequireLibpng", "LibpngName", "LibpngPath"])
@@ -104,7 +108,7 @@ if rv is None:
         RequireLibpng(env, static=pngstatic)
 
 else:
-    PngRequire = rv
+    PngRequire = rv["require"]
 
 
 # Freetype library ===================================================================
