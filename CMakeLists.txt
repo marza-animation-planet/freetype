@@ -162,6 +162,10 @@ set(SHARED_LIBRARY_VERSION ${VERSION_MAJOR}.${VERSION_MINOR})
 
 # Compiler definitions for building the library
 add_definitions(-DFT2_BUILD_LIBRARY)
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_CLANG)
+  # always compile with -fPIC when using gcc or clang
+  add_definitions("-fPIC")
+endif()
 
 
 # Find dependencies
@@ -322,7 +326,6 @@ elseif (WINCE)
 else ()
   set(BASE_SRCS ${BASE_SRCS} src/base/ftdebug.c)
 endif ()
-
 
 if (BUILD_FRAMEWORK)
   set(BASE_SRCS
