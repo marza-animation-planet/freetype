@@ -114,10 +114,7 @@ else:
 # Freetype library ===================================================================
 
 def FreetypeName():
-    if sys.platform == "win32" and staticlib:
-        return "libfreetype"
-    else:
-        return "freetype"
+    return "freetype"
 
 def FreetypePath():
     name = FreetypeName()
