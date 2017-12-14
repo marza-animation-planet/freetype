@@ -125,7 +125,7 @@ def FreetypePath():
     return out_libdir + "/" + libname
 
 def RequireFreetype(env):
-    env.Append(CPPPATH=[out_incdir])
+    env.Append(CPPPATH=[out_incdir + "/freetype2"])
     env.Append(LIBPATH=[out_libdir])
     excons.Link(env, FreetypePath(), static=staticlib, force=True, silent=True)
     if staticlib:
@@ -140,7 +140,7 @@ prjs = [
         "cmake-cfgs": ["./CMakeLists.txt"] + cfg_deps,
         "cmake-srcs": excons.CollectFiles(".", patterns=["*.c"], recursive=True),
         "cmake-outputs": map(lambda x: "include/freetype2/freetype/%s" % os.path.basename(x), excons.glob("include/freetype/*.h")) +
-                         [FreetypePath()]
+                         ["include/freetype2/ft2build.h", FreetypePath()]
     }
 ]
 
