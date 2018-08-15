@@ -12,10 +12,10 @@ out_libdir = excons.OutputBaseDirectory() + "/lib"
 staticlib = (excons.GetArgument("freetype-static", 1, int) != 0)
 
 cmake_opts = {"BUILD_SHARED_LIBS" : (0 if staticlib else 1), # not supported on windows with msvc
-              "WITH_ZLIB": 1,
-              "WITH_BZIP2": 1,
-              "WITH_PNG": 1,
-              "WITH_HARFBUZZ": 0}
+              "FT_WITH_ZLIB": 1,
+              "FT_WITH_BZIP2": 1,
+              "FT_WITH_PNG": 1,
+              "FT_WITH_HARFBUZZ": 0}
 
 cfg_deps = []
 libpng_overrides = {}
