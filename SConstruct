@@ -12,14 +12,14 @@ out_libdir = excons.OutputBaseDirectory() + "/lib"
 staticlib = (excons.GetArgument("freetype-static", 1, int) != 0)
 
 cmake_opts = {"BUILD_SHARED_LIBS" : (0 if staticlib else 1), # not supported on windows with msvc
-              "WITH_ZLIB": 1,
-              "WITH_BZIP2": 1,
-              "WITH_PNG": 1,
-              "WITH_HARFBUZZ": 0}
+              "FT_WITH_ZLIB": 1,
+              "FT_WITH_BZIP2": 1,
+              "FT_WITH_PNG": 1,
+              "FT_WITH_HARFBUZZ": 0}
 
 cfg_deps = []
-zlib_from_source = False
 libpng_overrides = {}
+libpng_deps = []
 
 # ZLIB Setup ===================================================================
 
@@ -30,14 +30,15 @@ def ZlibDefines(static):
     return ([] if static else ["ZLIB_DLL"])
 
 rv = excons.cmake.ExternalLibRequire(cmake_opts, name="zlib", libnameFunc=ZlibLibname, definesFunc=ZlibDefines)
-if rv is None:
+if rv["require"] is None:
     excons.PrintOnce("freetype: Build zlib from sources ...")
     excons.Call("zlib", imp=["RequireZlib", "ZlibName", "ZlibPath"])
 
-    cfg_deps.append(excons.cmake.OutputsCachePath("zlib"))
-
     zlibstatic = excons.GetArgument("zlib-static", 1, int)
     zlibpath = ZlibPath(static=zlibstatic)
+
+    cfg_deps.append(zlibpath)
+    libpng_deps.append(zlibpath)
 
     cmake_opts["ZLIB_LIBRARY"] = zlibpath
     cmake_opts["ZLIB_INCLUDE_DIR"] = out_incdir
@@ -49,11 +50,8 @@ if rv is None:
     libpng_overrides["with-zlib"] = os.path.dirname(os.path.dirname(zlibpath))
     libpng_overrides["zlib-static"] = zlibstatic
     libpng_overrides["zlib-name"] = ZlibName(static=zlibstatic)
-
-    zlib_from_source = True
-
 else:
-    ZlibRequire = rv
+    ZlibRequire = rv["require"]
 
 # BZIP2 Setup ===================================================================
 
@@ -64,74 +62,56 @@ def Bzip2Defines(static):
     return ([] if static else ["BZ_DLL"])
 
 rv = excons.cmake.ExternalLibRequire(cmake_opts, name="bz2", libnameFunc=Bzip2Libname, definesFunc=Bzip2Defines, varPrefix="BZIP2_")
-if rv is None:
+if rv["require"] is None:
     excons.PrintOnce("freetype: Build bzip2 from sources ...")
     excons.Call("bzip2", imp=["RequireBZ2", "BZ2Name", "BZ2Path"])
 
-    libpath = BZ2Path()
-    cfg_deps.append(libpath)
-
     bz2static = (excons.GetArgument("bz2-static", 1, int) != 0)
+    bz2path = BZ2Path()
 
-    cmake_opts["BZIP2_LIBRARY_RELEASE"] = libpath
-    cmake_opts["BZIP2_LIBRARY_DEBUG"] = libpath
+    cfg_deps.append(bz2path)
+
+    cmake_opts["BZIP2_LIBRARY_RELEASE"] = bz2path
+    cmake_opts["BZIP2_LIBRARY_DEBUG"] = bz2path
     cmake_opts["BZIP2_INCLUDE_DIR"] = out_incdir
 
     def Bzip2Require(env):
         RequireBZ2(env)
 
 else:
-    Bzip2Require = rv
+    Bzip2Require = rv["require"]
 
 # LIBPNG Setup ===================================================================
 
 def PngLibname(static):
-    return ("bz2" if sys.platform != "win32" else "libbz2")
+    return ("png" if sys.platform != "win32" else "libpng")
 
-rv = excons.cmake.ExternalLibRequire(cmake_opts, name="libpng", libnameFunc=PngLibname, varPrefix="PNG_")
-if rv is None:
+def PngDefines(static):
+    if not static and sys.platform == "win32":
+        env.Append(CPPDEFINES=["PNG_USE_DLL"])
+
+rv = excons.cmake.ExternalLibRequire(cmake_opts, name="libpng", libnameFunc=PngLibname, definesFunc=PngDefines, varPrefix="PNG_")
+if rv["require"] is None:
     excons.PrintOnce("freetype: Build libpng from sources ...")
-    if zlib_from_source:
-        excons.cmake.AddConfigureDependencies("libpng", [excons.cmake.OutputsCachePath("zlib")])
-
+    excons.cmake.AddConfigureDependencies("libpng", libpng_deps)
     excons.Call("libpng", overrides=libpng_overrides, imp=["RequireLibpng", "LibpngName", "LibpngPath"])
 
-    cfg_deps.append(excons.cmake.OutputsCachePath("libpng"))
-
     pngstatic = (excons.GetArgument("libpng-static", 1, int) != 0)
-    libpath = LibpngPath(static=pngstatic)
+    pngpath = LibpngPath(static=pngstatic)
 
-    cmake_opts["PNG_LIBRARY"] = libpath
+    cfg_deps.append(pngpath)
+
+    cmake_opts["PNG_LIBRARY"] = pngpath
     cmake_opts["PNG_INCLUDE_DIR"] = out_incdir
 
     def PngRequire(env):
         RequireLibpng(env, static=pngstatic)
 
 else:
-    PngRequire = rv
+    PngRequire = rv["require"]
 
 
 # Freetype library ===================================================================
-
-prjs = [
-    {   "name": "freetype",
-        "type": "cmake",
-        "cmake-opts": cmake_opts,
-        "cmake-cfgs": ["./CMakeLists.txt"] + cfg_deps,
-        "cmake-srcs": excons.CollectFiles(".", patterns=["*.c"], recursive=True)
-    }
-]
-
-excons.AddHelpOptions(libtiff="""FREETYPE OPTIONS
-  freetype-static=0|1 : Toggle between static and shared library build. [1]
-  zlib-static=0|1     : When building zlib from sources, link static version of the library to freetype. [1]
-  bzip2-static=0|1    : When building bzip2 from sources, link static version of the library to freetype. [1]
-  libpng-static=0|1   : When building libpng from sources, link static version of the library to freetype. [1]""")
-excons.AddHelpOptions(ext_zlib=excons.ExternalLibHelp("zlib"))
-excons.AddHelpOptions(ext_bzip2=excons.ExternalLibHelp("bzip2"))
-excons.AddHelpOptions(ext_libpng=excons.ExternalLibHelp("libpng"))
-excons.DeclareTargets(env, prjs)
-
 
 def FreetypeName():
     return "freetype"
@@ -145,14 +125,30 @@ def FreetypePath():
     return out_libdir + "/" + libname
 
 def RequireFreetype(env):
-    env.Append(CPPPATH=[out_incdir])
+    env.Append(CPPPATH=[out_incdir + "/freetype2"])
     env.Append(LIBPATH=[out_libdir])
+    excons.Link(env, FreetypePath(), static=staticlib, force=True, silent=True)
     if staticlib:
         PngRequire(env)
         ZlibRequire(env)
         Bzip2Require(env)
-    excons.Link(env, FreetypeName(), static=staticlib, force=True, silent=True)
+
+prjs = [
+    {   "name": FreetypeName(),
+        "type": "cmake",
+        "cmake-opts": cmake_opts,
+        "cmake-cfgs": ["./CMakeLists.txt"] + cfg_deps,
+        "cmake-srcs": excons.CollectFiles(".", patterns=["*.c"], recursive=True),
+        "cmake-outputs": map(lambda x: "include/freetype2/freetype/%s" % os.path.basename(x), excons.glob("include/freetype/*.h")) +
+                         ["include/freetype2/ft2build.h", FreetypePath()]
+    }
+]
+
+excons.AddHelpOptions(freetype="""FREETYPE OPTIONS
+  freetype-static=0|1 : Toggle between static and shared library build. [1]
+  zlib-static=0|1     : When building zlib from sources, link static version of the library to freetype. [1]
+  bz2-static=0|1      : When building bzip2 from sources, link static version of the library to freetype. [1]
+  libpng-static=0|1   : When building libpng from sources, link static version of the library to freetype. [1]""")
+excons.DeclareTargets(env, prjs)
 
 Export("FreetypeName FreetypePath RequireFreetype")
-
-Default(["freetype"])
