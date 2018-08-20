@@ -237,6 +237,9 @@ if (UNIX)
     FTCONFIG_H "${FTCONFIG_H}")
   file(WRITE "${PROJECT_BINARY_DIR}/include/freetype/config/ftconfig.h"
     "${FTCONFIG_H}")
+else ()
+  file(READ "${PROJECT_SOURCE_DIR}/include/freetype/config/ftconfig.h" FTCONFIG_H)
+  file(WRITE "${PROJECT_BINARY_DIR}/include/freetype/config/ftconfig.h" "${FTCONFIG_H}")
 endif ()
 
 
