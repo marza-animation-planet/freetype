@@ -15,7 +15,8 @@ cmake_opts = {"BUILD_SHARED_LIBS" : (0 if staticlib else 1), # not supported on 
               "FT_WITH_ZLIB": 1,
               "FT_WITH_BZIP2": 1,
               "FT_WITH_PNG": 1,
-              "FT_WITH_HARFBUZZ": 0}
+              "FT_WITH_HARFBUZZ": 0,
+              "CMAKE_INSTALL_LIBDIR": "lib"}
 
 cfg_deps = []
 libpng_overrides = {}
