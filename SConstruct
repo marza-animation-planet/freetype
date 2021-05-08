@@ -2,6 +2,7 @@ import os
 import sys
 import pprint
 import excons
+import SCons.Script # pylint: disable=import-error
 
 
 env = excons.MakeBaseEnv()
@@ -28,15 +29,15 @@ def ZlibLibname(static):
     return ("z" if sys.platform != "win32" else ("zlib" if static else "zdll"))
 
 def ZlibDefines(static):
-    return ([] if static else ["ZLIB_DLL"])
+    return ([] if (static or sys.platform != "win32") else ["ZLIB_DLL"])
 
 rv = excons.cmake.ExternalLibRequire(cmake_opts, name="zlib", libnameFunc=ZlibLibname, definesFunc=ZlibDefines)
 if rv["require"] is None:
     excons.PrintOnce("freetype: Build zlib from sources ...")
-    excons.Call("zlib", imp=["RequireZlib", "ZlibName", "ZlibPath"])
+    excons.Call("zlib", targets=["zlib"], imp=["RequireZlib", "ZlibName", "ZlibPath"])
 
     zlibstatic = excons.GetArgument("zlib-static", 1, int)
-    zlibpath = ZlibPath(static=zlibstatic)
+    zlibpath = ZlibPath(static=zlibstatic) # pylint: disable=undefined-variable
 
     cfg_deps.append(zlibpath)
     libpng_deps.append(zlibpath)
@@ -45,12 +46,12 @@ if rv["require"] is None:
     cmake_opts["ZLIB_INCLUDE_DIR"] = out_incdir
 
     def ZlibRequire(env):
-        RequireZlib(env, static=zlibstatic)
+        RequireZlib(env, static=zlibstatic) # pylint: disable=undefined-variable
 
     # Setup overrides for libpng subprojects
     libpng_overrides["with-zlib"] = os.path.dirname(os.path.dirname(zlibpath))
     libpng_overrides["zlib-static"] = zlibstatic
-    libpng_overrides["zlib-name"] = ZlibName(static=zlibstatic)
+    libpng_overrides["zlib-name"] = ZlibName(static=zlibstatic) # pylint: disable=undefined-variable
 else:
     ZlibRequire = rv["require"]
 
@@ -60,15 +61,15 @@ def Bzip2Libname(static):
     return ("bz2" if sys.platform != "win32" else "libbz2")
 
 def Bzip2Defines(static):
-    return ([] if static else ["BZ_DLL"])
+    return ([] if (static or sys.platform != "win32") else ["BZ_DLL"])
 
 rv = excons.cmake.ExternalLibRequire(cmake_opts, name="bz2", libnameFunc=Bzip2Libname, definesFunc=Bzip2Defines, varPrefix="BZIP2_")
 if rv["require"] is None:
     excons.PrintOnce("freetype: Build bzip2 from sources ...")
-    excons.Call("bzip2", imp=["RequireBZ2", "BZ2Name", "BZ2Path"])
+    excons.Call("bzip2", targets=["bz2"], imp=["RequireBZ2", "BZ2Name", "BZ2Path"])
 
     bz2static = (excons.GetArgument("bz2-static", 1, int) != 0)
-    bz2path = BZ2Path()
+    bz2path = BZ2Path() # pylint: disable=undefined-variable
 
     cfg_deps.append(bz2path)
 
@@ -77,7 +78,7 @@ if rv["require"] is None:
     cmake_opts["BZIP2_INCLUDE_DIR"] = out_incdir
 
     def Bzip2Require(env):
-        RequireBZ2(env)
+        RequireBZ2(env) # pylint: disable=undefined-variable
 
 else:
     Bzip2Require = rv["require"]
@@ -88,17 +89,16 @@ def PngLibname(static):
     return ("png" if sys.platform != "win32" else "libpng")
 
 def PngDefines(static):
-    if not static and sys.platform == "win32":
-        env.Append(CPPDEFINES=["PNG_USE_DLL"])
+    return (["PNG_USE_DLL"] if (not static and sys.platform == "win32") else [])
 
 rv = excons.cmake.ExternalLibRequire(cmake_opts, name="libpng", libnameFunc=PngLibname, definesFunc=PngDefines, varPrefix="PNG_")
 if rv["require"] is None:
     excons.PrintOnce("freetype: Build libpng from sources ...")
     excons.cmake.AddConfigureDependencies("libpng", libpng_deps)
-    excons.Call("libpng", overrides=libpng_overrides, imp=["RequireLibpng", "LibpngName", "LibpngPath"])
+    excons.Call("libpng", targets=["libpng"], overrides=libpng_overrides, imp=["RequireLibpng", "LibpngName", "LibpngPath"])
 
     pngstatic = (excons.GetArgument("libpng-static", 1, int) != 0)
-    pngpath = LibpngPath(static=pngstatic)
+    pngpath = LibpngPath(static=pngstatic) # pylint: disable=undefined-variable
 
     cfg_deps.append(pngpath)
 
@@ -106,7 +106,7 @@ if rv["require"] is None:
     cmake_opts["PNG_INCLUDE_DIR"] = out_incdir
 
     def PngRequire(env):
-        RequireLibpng(env, static=pngstatic)
+        RequireLibpng(env, static=pngstatic) # pylint: disable=undefined-variable
 
 else:
     PngRequire = rv["require"]
@@ -152,4 +152,4 @@ excons.AddHelpOptions(freetype="""FREETYPE OPTIONS
   libpng-static=0|1   : When building libpng from sources, link static version of the library to freetype. [1]""")
 excons.DeclareTargets(env, prjs)
 
-Export("FreetypeName FreetypePath RequireFreetype")
+SCons.Script.Export("FreetypeName FreetypePath RequireFreetype")
