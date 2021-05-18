@@ -115,7 +115,10 @@ else:
 # Freetype library ===================================================================
 
 def FreetypeName():
-    return "freetype"
+    libname = "freetype"
+    if sys.platform == "win32" and excons.GetArgument("debug", 0, int) != 0:
+        libname += "d"
+    return libname
 
 def FreetypePath():
     name = FreetypeName()
@@ -136,6 +139,7 @@ def RequireFreetype(env):
 
 prjs = [
     {   "name": FreetypeName(),
+        "alias": "freetype",
         "type": "cmake",
         "cmake-opts": cmake_opts,
         "cmake-cfgs": ["./CMakeLists.txt"] + cfg_deps,
