@@ -1,12 +1,12 @@
 [submodule "excons"]
 	path = excons
-	url = https://github.com/gatgui/excons.git
+	url = git@github.com:marza-animation-planet/excons.git
 [submodule "bzip2"]
 	path = bzip2
-	url = git://github.com/gatgui/bzip2
+	url = git@github.com:marza-animation-planet/bzip2
 [submodule "zlib"]
 	path = zlib
-	url = git://github.com/gatgui/zlib
+	url = git@github.com:marza-animation-planet/zlib
 [submodule "libpng"]
 	path = libpng
-	url = git://github.com/gatgui/libpng
+	url = git@github.com:marza-animation-planet/libpng
