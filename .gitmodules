@@ -3,10 +3,10 @@
 	url = git@github.com:marza-animation-planet/excons.git
 [submodule "bzip2"]
 	path = bzip2
-	url = git@github.com:marza-animation-planet/bzip2
+	url = git@github.com:marza-animation-planet/bzip2.git
 [submodule "zlib"]
 	path = zlib
-	url = git@github.com:marza-animation-planet/zlib
+	url = git@github.com:marza-animation-planet/zlib.git
 [submodule "libpng"]
 	path = libpng
-	url = git@github.com:marza-animation-planet/libpng
+	url = git@github.com:marza-animation-planet/libpng.git

@@ -144,7 +144,7 @@ prjs = [
         "cmake-opts": cmake_opts,
         "cmake-cfgs": ["./CMakeLists.txt"] + cfg_deps,
         "cmake-srcs": excons.CollectFiles(".", patterns=["*.c"], recursive=True),
-        "cmake-outputs": map(lambda x: "include/freetype2/freetype/%s" % os.path.basename(x), excons.glob("include/freetype/*.h")) +
+        "cmake-outputs": ["include/freetype2/freetype/%s" % os.path.basename(x) for x in excons.glob("include/freetype/*.h")] +
                          ["include/freetype2/ft2build.h", FreetypePath()]
     }
 ]
